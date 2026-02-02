@@ -190,8 +190,9 @@ class LibraryBooker:
         print("  The script will help automate the login steps:")
         print("  1. Click on password field to trigger autofill")
         print("  2. Wait for you to press Enter on password")
-        print("  3. Detect 2FA page and wait for autofill")
-        print("  4. You just need to click the macOS 2FA suggestion!")
+        print("  3. Automatically select 'Text' for SMS verification")
+        print("  4. Detect 2FA page and wait for autofill")
+        print("  5. You just need to click the macOS 2FA suggestion!")
         print("="*70 + "\n")
 
         start_time = time.time()
@@ -218,6 +219,10 @@ class LibraryBooker:
             # Step 2: Wait for login to complete (either user presses Enter or submits)
             logger.info("Waiting for password submission...")
 
+            # Track which stage we're at
+            method_selected = False
+            two_fa_detected = False
+
             # Check if we're still on CAS or if we moved to 2FA
             check_interval = 2
             while time.time() - start_time < timeout:
@@ -229,38 +234,95 @@ class LibraryBooker:
                     print("  ✓ Login completed successfully!\n")
                     return True
 
-                # Check if we moved to 2FA page
-                if "cas.uoguelph.ca" in current_url:
+                # Check if we're on CAS pages
+                if "cas.uoguelph.ca" in current_url or "aka.ms/mfasetup" in current_url:
                     page_source = self.driver.page_source.lower()
 
-                    # Look for 2FA indicators
-                    if any(indicator in page_source for indicator in ['duo', 'two-factor', '2fa', 'verification code', 'authentication code']):
-                        if not hasattr(self, '_2fa_detected'):
-                            self._2fa_detected = True
-                            logger.info("✓ 2FA page detected")
-                            print("  ✓ Password accepted! Now on 2FA page")
-                            print("  → Look for the macOS autofill suggestion for the SMS code")
-                            print("  → Click on the code suggestion when it appears!\n")
+                    # Step 2a: Check for "Verify your identity" / method selection page
+                    if "verify your identity" in page_source and not method_selected:
+                        logger.info("✓ Password accepted! Method selection page detected")
+                        print("  ✓ Password accepted!")
+                        print("  → Selecting 'Text' for SMS verification...\n")
 
-                            # Try to find and click the 2FA input field
+                        try:
+                            # Look for the Text option - try multiple selectors
+                            time.sleep(1)
+
+                            # Try clicking by text content
+                            text_button = None
                             try:
-                                # Wait a moment for the 2FA page to fully load
-                                time.sleep(2)
-
-                                # Common 2FA field selectors
-                                two_fa_field = self.driver.find_element(
-                                    By.CSS_SELECTOR,
-                                    "input[name*='code'], input[name*='otp'], input[name*='token'], input[type='tel'], input[inputmode='numeric']"
+                                # Look for element containing "Text" and phone number
+                                text_button = self.driver.find_element(
+                                    By.XPATH,
+                                    "//div[contains(text(), 'Text') and contains(text(), 'XXX')]"
                                 )
-                                two_fa_field.click()
-                                logger.info("✓ 2FA field clicked - macOS should show SMS code")
-
-                                # Give macOS time to detect SMS and show autofill (can take up to 10 seconds)
-                                logger.info("Waiting for macOS SMS autofill to appear (up to 15 seconds)...")
-                                time.sleep(3)  # Initial wait for SMS to arrive
-
                             except:
-                                logger.debug("Could not auto-click 2FA field")
+                                pass
+
+                            if not text_button:
+                                try:
+                                    # Alternative: look for the text message icon area
+                                    text_button = self.driver.find_element(
+                                        By.XPATH,
+                                        "//*[contains(text(), 'Text +')]"
+                                    )
+                                except:
+                                    pass
+
+                            if not text_button:
+                                try:
+                                    # Try finding by the icon area (first clickable option)
+                                    clickable_divs = self.driver.find_elements(By.CSS_SELECTOR, "div[role='button'], div[onclick], a")
+                                    for div in clickable_divs:
+                                        if 'text' in div.text.lower():
+                                            text_button = div
+                                            break
+                                except:
+                                    pass
+
+                            if text_button:
+                                text_button.click()
+                                logger.info("✓ Clicked 'Text' option")
+                                print("  ✓ Selected 'Text' method\n")
+                                method_selected = True
+                                time.sleep(2)  # Wait for next page
+                            else:
+                                logger.warning("Could not find 'Text' button - may need manual selection")
+                                print("  ⚠ Please click 'Text' manually\n")
+                                method_selected = True  # Continue anyway
+
+                        except Exception as e:
+                            logger.warning(f"Error clicking Text option: {e}")
+                            print("  ⚠ Please click 'Text' manually\n")
+                            method_selected = True
+
+                    # Step 2b: Look for 2FA code input page
+                    if any(indicator in page_source for indicator in ['duo', 'two-factor', '2fa', 'verification code', 'authentication code', 'enter code']) and not two_fa_detected:
+                        two_fa_detected = True
+                        logger.info("✓ 2FA code page detected")
+                        print("  ✓ SMS will be sent to your phone!")
+                        print("  → Look for the macOS autofill suggestion for the SMS code")
+                        print("  → Click on the code suggestion when it appears!\n")
+
+                        # Try to find and click the 2FA input field
+                        try:
+                            # Wait a moment for the 2FA page to fully load
+                            time.sleep(2)
+
+                            # Common 2FA field selectors
+                            two_fa_field = self.driver.find_element(
+                                By.CSS_SELECTOR,
+                                "input[name*='code'], input[name*='otp'], input[name*='token'], input[type='tel'], input[inputmode='numeric'], input[id*='code']"
+                            )
+                            two_fa_field.click()
+                            logger.info("✓ 2FA field clicked - macOS should show SMS code")
+
+                            # Give macOS time to detect SMS and show autofill (can take up to 10 seconds)
+                            logger.info("Waiting for macOS SMS autofill to appear (up to 15 seconds)...")
+                            time.sleep(3)  # Initial wait for SMS to arrive
+
+                        except:
+                            logger.debug("Could not auto-click 2FA field")
 
                 time.sleep(check_interval)
 

@@ -27,18 +27,37 @@ Password submitted!
   The script will help automate the login steps:
   1. Click on password field to trigger autofill
   2. Wait for you to press Enter on password
-  3. Detect 2FA page and wait for autofill
-  4. You just need to click the macOS 2FA suggestion!
+  3. Automatically select 'Text' for SMS verification
+  4. Detect 2FA page and wait for autofill
+  5. You just need to click the macOS 2FA suggestion!
 ======================================================================
 
   → Password field is ready. Press ENTER when autofill appears!
 ```
 
-### Step 2: 2FA Code Autofill (MacOS Feature)
+### Step 2: Select Verification Method
 ```
 Password accepted
     ↓
-Script detects 2FA page
+"Verify your identity" screen appears
+    ↓
+Script automatically clicks "Text" option
+    ↓
+(Not "Call")
+```
+
+**What you see:**
+```
+  ✓ Password accepted!
+  → Selecting 'Text' for SMS verification...
+  ✓ Selected 'Text' method
+```
+
+### Step 3: 2FA Code Autofill (MacOS Feature)
+```
+SMS being sent
+    ↓
+Script detects 2FA code page
     ↓
 Script clicks 2FA code field
     ↓
