@@ -1,0 +1,25 @@
+# Chrome automation profile
+.chrome_automation_profile/
+
+# Screenshots
+*.png
+
+# Logs
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Config (may contain sensitive data)
+config.json
+
+# OS
+.DS_Store
+Thumbs.db
