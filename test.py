@@ -4,18 +4,19 @@ Test script for the UoG Library Booker.
 Runs through various test scenarios to verify the system works.
 """
 
-import sys
 import subprocess
-import time
+import sys
 from pathlib import Path
 
-def print_header(text):
-    """Print a formatted header."""
-    print("\n" + "="*60)
-    print(f"  {text}")
-    print("="*60 + "\n")
 
-def run_command(cmd, description):
+def print_header(text: str) -> None:
+    """Print a formatted header."""
+    print("\n" + "=" * 60)
+    print(f"  {text}")
+    print("=" * 60 + "\n")
+
+
+def run_command(cmd: list, description: str) -> bool:
     """Run a command and return success status."""
     print(f"Testing: {description}")
     print(f"Command: {' '.join(cmd)}")
@@ -45,43 +46,100 @@ def run_command(cmd, description):
         print(f"✗ FAILED: {e}\n")
         return False
 
-def check_dependencies():
+
+def check_dependencies() -> bool:
     """Check if required dependencies are installed."""
     print_header("Checking Dependencies")
+
+    all_good = True
 
     try:
         import selenium
         print(f"✓ selenium {selenium.__version__}")
     except ImportError:
         print("✗ selenium not installed")
-        return False
+        all_good = False
 
     try:
         import webdriver_manager
-        print(f"✓ webdriver-manager installed")
+        print("✓ webdriver-manager installed")
     except ImportError:
         print("✗ webdriver-manager not installed")
-        return False
+        all_good = False
 
-    return True
+    try:
+        from dotenv import load_dotenv
+        print("✓ python-dotenv installed")
+    except ImportError:
+        print("✗ python-dotenv not installed")
+        all_good = False
 
-def check_config():
+    return all_good
+
+
+def check_config() -> bool:
     """Check if config.json exists."""
     print_header("Checking Configuration")
 
     config_file = Path("config.json")
     if config_file.exists():
-        print(f"✓ config.json found")
+        print("✓ config.json found")
         return True
     else:
         print("✗ config.json not found")
+        print("  → Copy config.example.json to config.json and configure it")
         return False
 
-def main():
+
+def check_env() -> bool:
+    """Check if .env exists."""
+    print_header("Checking Environment")
+
+    env_file = Path(".env")
+    if env_file.exists():
+        print("✓ .env found")
+        return True
+    else:
+        print("⚠ .env not found (optional)")
+        print("  → Copy .env.example to .env for credential storage")
+        return True  # Not required
+
+
+def check_project_structure() -> bool:
+    """Check if project structure is correct."""
+    print_header("Checking Project Structure")
+
+    required_files = [
+        "src/__init__.py",
+        "src/booker.py",
+        "src/auth.py",
+        "src/config.py",
+        "src/utils.py",
+        "src/scheduler.py",
+        "library_booker.py",
+        "scheduler.py",
+        "requirements.txt",
+    ]
+
+    all_good = True
+    for file_path in required_files:
+        if Path(file_path).exists():
+            print(f"✓ {file_path}")
+        else:
+            print(f"✗ {file_path} missing")
+            all_good = False
+
+    return all_good
+
+
+def main() -> int:
     """Run all tests."""
     print_header("UoG Library Booker - Test Suite")
 
     tests = []
+
+    # Check project structure
+    tests.append(("Project Structure", check_project_structure()))
 
     # Check dependencies
     tests.append(("Dependencies", check_dependencies()))
@@ -89,8 +147,11 @@ def main():
     # Check config
     tests.append(("Configuration", check_config()))
 
-    # Test availability check
-    if tests[-1][1]:  # Only if config exists
+    # Check env
+    tests.append(("Environment", check_env()))
+
+    # Test availability check (only if config exists)
+    if all(result for name, result in tests if name in ("Dependencies", "Configuration")):
         tests.append((
             "Availability Check",
             run_command(
@@ -99,15 +160,15 @@ def main():
             )
         ))
 
-    # Test dry run
-    if tests[-1][1]:  # Only if previous test passed
-        tests.append((
-            "Dry Run Booking",
-            run_command(
-                ["python3", "library_booker.py", "--dry-run"],
-                "Test booking process (dry run)"
-            )
-        ))
+        # Test dry run
+        if tests[-1][1]:
+            tests.append((
+                "Dry Run Booking",
+                run_command(
+                    ["python3", "library_booker.py", "--dry-run"],
+                    "Test booking process (dry run)"
+                )
+            ))
 
     # Print summary
     print_header("Test Summary")
@@ -127,6 +188,7 @@ def main():
     else:
         print("\n⚠️  Some tests failed. Please review the output above.")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

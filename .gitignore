@@ -2,9 +2,11 @@
 .chrome_automation_profile/
 
 # Screenshots
+screenshots/
 *.png
 
 # Logs
+logs/
 *.log
 
 # Python
@@ -16,10 +18,23 @@ __pycache__/
 venv/
 env/
 ENV/
+.venv/
+.eggs/
+*.egg-info/
 
-# Config (may contain sensitive data)
+# Config and credentials (sensitive data)
 config.json
+.env
 
 # OS
 .DS_Store
 Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude/AI
+.claude/

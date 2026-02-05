@@ -6,10 +6,36 @@ Automatically book study rooms at the University of Guelph Library.
 
 - **Automatic Booking**: Books rooms based on your preferences for capacity, time, and specific rooms
 - **Smart Scheduling**: Runs daily at midnight to grab rooms 2 days in advance (when slots become available)
-- **Session Authentication**: Uses your existing Chrome login session - no need to store credentials
+- **Session Authentication**: Handles Microsoft OAuth + 2FA automatically
 - **Configurable Preferences**: Set preferred times, room capacity, and excluded rooms
 - **Notifications**: Desktop notifications when booking succeeds or fails
 - **Dry Run Mode**: Test the script without actually booking
+
+## Project Structure
+
+```
+uog-library-booker/
+├── src/                    # Main source code
+│   ├── __init__.py
+│   ├── auth.py            # Authentication handling (Microsoft/UoG CAS)
+│   ├── booker.py          # Main booking logic
+│   ├── config.py          # Configuration management
+│   ├── scheduler.py       # Scheduling functionality
+│   └── utils.py           # Utility functions
+├── scripts/               # Shell scripts for convenience
+│   ├── run.sh
+│   └── run.bat
+├── logs/                  # Log files (git-ignored)
+├── screenshots/           # Screenshots (git-ignored)
+├── library_booker.py      # Main entry point
+├── scheduler.py           # Scheduler entry point
+├── test.py               # Test suite
+├── config.json           # Your configuration (git-ignored)
+├── config.example.json   # Example configuration
+├── .env                  # Credentials (git-ignored)
+├── .env.example          # Example credentials file
+└── requirements.txt      # Python dependencies
+```
 
 ## Installation
 
@@ -28,58 +54,39 @@ The script uses Selenium with Chrome. Make sure you have:
 
 ### 3. Configure Your Preferences
 
-Edit `config.json` to set your preferences:
+Copy `config.example.json` to `config.json` and edit:
 
 ```json
 {
     "room_preferences": {
-        "capacity": 1,          // 1 for single rooms, 2 for 2-person rooms
-        "preferred_rooms": [],  // e.g., ["315", "316"] or empty for any
-        "excluded_rooms": []    // Rooms to never book
+        "capacity": 1,
+        "preferred_rooms": [],
+        "excluded_rooms": []
     },
     "time_preferences": {
-        "preferred_start_times": ["10:00", "11:00", "12:00", "13:00", "14:00"],
-        "booking_duration_hours": 2,
-        "days_in_advance": 2    // Book 2 days ahead (max allowed)
+        "preferred_start_times": ["11:00", "11:30", "12:00", "12:30", "13:00"],
+        "booking_duration_hours": 4,
+        "days_in_advance": 2
     }
 }
 ```
 
-### 4. Set Up Chrome Profile (Important!)
+### 4. Set Up Credentials (Optional)
 
-The script uses a dedicated automation profile to avoid conflicts with your main Chrome browser.
+Copy `.env.example` to `.env` and add your credentials:
 
-**First Time Setup:**
-- The first time you run the script, it will create a `.chrome_automation_profile` directory
-- You'll need to log into the UoG library booking system when prompted
-- After that, the session will be saved for future runs
-
-**Optional: Use Custom Profile**
-If you want to use a custom Chrome profile path, add it to config.json:
-```json
-"chrome_profile_path": "/path/to/custom/profile"
+```
+UOG_EMAIL=youremail@uoguelph.ca
+UOG_PASSWORD=  # Optional - leave empty to use autofill
 ```
 
-**Note**: The script can run even when Chrome is open - no need to close your browser!
+### 5. Chrome Profile Setup
 
-### 5. Login with Autofill (MacOS Feature!)
+The script uses a dedicated automation profile (`.chrome_automation_profile/`) to avoid conflicts with your main Chrome browser.
 
-The script now helps automate the UoG CAS login process:
-
-**How it works:**
-1. **Password Field**: Script clicks the password field to trigger Chrome autofill
-   - Just press **Enter** when Chrome shows your saved password
-2. **2FA Code**: Script detects the 2FA page and clicks the code field
-   - MacOS will show the SMS code suggestion - just click it!
-3. **Done**: Login completes automatically
-
-**Benefits:**
-- No need to type anything manually
-- Uses Chrome's saved passwords
-- Uses MacOS SMS autofill for 2FA
-- Works great for scheduled midnight bookings
-
-**Note**: After the first successful login, the session is saved in the automation profile, so you won't need to log in again for future bookings!
+**First Time Setup:**
+- The first time you run the script, you'll need to log in
+- After that, the session will be saved for future runs
 
 ## Usage
 
@@ -90,8 +97,6 @@ Verify everything is working correctly:
 ```bash
 python test.py
 ```
-
-This will check dependencies, configuration, and run test bookings.
 
 ### Check Room Availability
 
@@ -119,7 +124,7 @@ python library_booker.py
 python scheduler.py --setup
 ```
 
-This will show you the cron command to add. To add it:
+This will show you the cron command to add:
 ```bash
 crontab -e
 # Add the line shown by the setup command
@@ -138,8 +143,6 @@ Follow the PowerShell instructions shown.
 ```bash
 python scheduler.py --daemon
 ```
-
-This keeps the script running and executes at the configured time daily.
 
 ## Configuration Options
 
@@ -195,12 +198,12 @@ This keeps the script running and executes at the configured time daily.
 - Check your internet connection
 
 ### Screenshots
-Check the project folder for `*.png` screenshots taken on errors or during dry runs.
+Check the `screenshots/` folder for debugging screenshots.
 
 ## Logs
 
-- `booking.log` - Detailed booking attempt logs
-- `scheduler.log` - Scheduler activity logs
+- `logs/booking.log` - Detailed booking attempt logs
+- `logs/scheduler.log` - Scheduler activity logs
 
 ## Disclaimer
 

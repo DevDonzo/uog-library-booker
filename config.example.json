@@ -1,0 +1,39 @@
+{
+    "booking_url": "https://cal.lib.uoguelph.ca/spaces?lid=1536&gid=0&c=0",
+    "chrome_profile_path": "",
+
+    "room_preferences": {
+        "capacity": 1,
+        "preferred_rooms": [],
+        "excluded_rooms": []
+    },
+
+    "time_preferences": {
+        "preferred_start_times": ["10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30"],
+        "booking_duration_hours": 2,
+        "days_in_advance": 2
+    },
+
+    "schedule": {
+        "enabled": true,
+        "run_time": "00:05",
+        "retry_on_failure": true,
+        "max_retries": 3
+    },
+
+    "notifications": {
+        "enabled": true,
+        "email": "",
+        "desktop_notification": true
+    },
+
+    "advanced": {
+        "headless_mode": false,
+        "wait_timeout": 10,
+        "login_timeout": 180,
+        "screenshot_on_error": true,
+        "log_level": "INFO",
+        "use_chrome_profile": true,
+        "use_existing_chrome_profile": false
+    }
+}
