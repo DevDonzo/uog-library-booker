@@ -95,25 +95,25 @@ The script uses a dedicated automation profile (`.chrome_automation_profile/`) t
 Verify everything is working correctly:
 
 ```bash
-python test.py
+python tests/test_runner.py
 ```
 
 ### Check Room Availability
 
 ```bash
-python library_booker.py --check
+python -m src.booker --check
 ```
 
 ### Test Booking (Dry Run)
 
 ```bash
-python library_booker.py --dry-run
+python -m src.booker --dry-run
 ```
 
 ### Book a Room
 
 ```bash
-python library_booker.py
+python -m src.booker
 ```
 
 ### Set Up Daily Scheduling
@@ -121,7 +121,7 @@ python library_booker.py
 #### macOS/Linux (Cron)
 
 ```bash
-python scheduler.py --setup
+python -m src.scheduler --setup
 ```
 
 This will show you the cron command to add:
@@ -133,7 +133,7 @@ crontab -e
 #### Windows (Task Scheduler)
 
 ```bash
-python scheduler.py --setup
+python -m src.scheduler --setup
 ```
 
 Follow the PowerShell instructions shown.
@@ -141,7 +141,7 @@ Follow the PowerShell instructions shown.
 #### Run as Background Daemon
 
 ```bash
-python scheduler.py --daemon
+python -m src.scheduler --daemon
 ```
 
 ## Configuration Options

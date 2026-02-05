@@ -155,7 +155,7 @@ def main() -> int:
         tests.append((
             "Availability Check",
             run_command(
-                ["python3", "library_booker.py", "--check"],
+                ["python3", "-m", "src.booker", "--check"],
                 "Check room availability"
             )
         ))
@@ -165,7 +165,7 @@ def main() -> int:
             tests.append((
                 "Dry Run Booking",
                 run_command(
-                    ["python3", "library_booker.py", "--dry-run"],
+                    ["python3", "-m", "src.booker", "--dry-run"],
                     "Test booking process (dry run)"
                 )
             ))

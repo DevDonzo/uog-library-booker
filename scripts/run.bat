@@ -1,32 +1,18 @@
 @echo off
 REM UoG Library Room Booker - Quick run script
 
-REM Navigate to script directory
+REM Navigate to project root
 cd /d "%~dp0.."
 
-REM Check if Python is available
-where python >nul 2>&1
-if errorlevel 1 (
-    echo Python is not installed. Please install it first.
-    exit /b 1
-)
-
-REM Check if requirements are installed
-python -c "import selenium" 2>nul
-if errorlevel 1 (
-    echo Installing dependencies...
-    pip install -r requirements.txt
-)
-
-REM Run the booker
+REM Run the modules
 if "%1"=="check" (
-    python library_booker.py --check
+    python -m src.booker --check
 ) else if "%1"=="dry-run" (
-    python library_booker.py --dry-run
+    python -m src.booker --dry-run
 ) else if "%1"=="schedule" (
-    python scheduler.py --daemon
+    python -m src.scheduler --daemon
 ) else if "%1"=="test" (
-    python test.py
+    python tests/test_runner.py
 ) else (
-    python library_booker.py %*
+    python -m src.booker %*
 )
